@@ -1,0 +1,69 @@
+name: Update Documentation
+
+on:
+  push:
+    branches: ["main"]
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+env:
+  TARGET: "AccessibilityBook"
+  DERIVED_DATA_PATH: './docs'
+
+jobs:
+  update-docs:
+    runs-on: macos-15
+    steps:
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+           xcode-version: latest
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          swift package --allow-writing-to-directory ${{ env.DERIVED_DATA_PATH }} generate-documentation --target ${{ env.TARGET }} --disable-indexing --transform-for-static-hosting --hosting-base-path 'a11y-book-new' --output-path ${{ env.DERIVED_DATA_PATH }}
+
+      - name: Add redirect index.html
+        run: |
+          cat > ${{ env.DERIVED_DATA_PATH }}/index.html <<EOF
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta http-equiv="refresh" content="0; url=./documentation/accessibilitybook/">
+            </head>
+            <body>
+              <p>Redirecting to <a href="./documentation/accessibilitybook/">documentation</a>...</p>
+            </body>
+          </html>
+          EOF
+
+      - name: Create Cloudflare Pages project (if needed)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create a11y-book-new --production-branch main
+        continue-on-error: true
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ env.DERIVED_DATA_PATH }} --project-name=a11y-book-new
+
+      - name: Deploy router Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config cloudflare/wrangler.toml
