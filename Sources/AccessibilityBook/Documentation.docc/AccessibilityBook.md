@@ -21,9 +21,9 @@
 - <doc:02-WhyAccessibility>
 - <doc:03-NoSeparateVersion>
 
-### VoiceOver
+### Как работает VoiceOver
 
-- <doc:01-AudioInterface>
+- <doc:01-VoiceOverHowItWorks>
 - <doc:02-EnablingVoiceOver>
 - <doc:03-Navigation>
 - <doc:04-Actions>
@@ -32,7 +32,7 @@
 - <doc:07-AccessibilityTree>
 - <doc:08-Practice>
 
-### VoiceOver Extended
+### Как адаптировать для VoiceOver
 - <doc:09-Labeling>
 - <doc:10-Simplify>
 - <doc:11-VerticalSwipes>
@@ -40,10 +40,6 @@
 - <doc:13-Charts>
 - <doc:14-Miscellaneous>
 - <doc:15-TextInput>
-
-### Пример (Додо Пицца)
-
-- <doc:01-Example>
 
 ### Voice Control
 
