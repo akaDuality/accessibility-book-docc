@@ -38,10 +38,10 @@ jobs:
           <!DOCTYPE html>
           <html>
             <head>
-              <meta http-equiv="refresh" content="0; url=./documentation/accessibilitybook/">
+              <meta http-equiv="refresh" content="0; url=/a11y-book-new/documentation/accessibilitybook/">
             </head>
             <body>
-              <p>Redirecting to <a href="./documentation/accessibilitybook/">documentation</a>...</p>
+              <p>Redirecting to <a href="/a11y-book-new/documentation/accessibilitybook/">documentation</a>...</p>
             </body>
           </html>
           EOF
