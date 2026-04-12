@@ -32,14 +32,25 @@
 - <doc:07-AccessibilityTree>
 - <doc:08-Practice>
 
-### Как адаптировать для VoiceOver
+### Как описывать элементы для VoiceOver
 - <doc:09-Labeling>
 - <doc:10-Simplify>
+
+### Вертикальные свайпы
 - <doc:11-VerticalSwipes>
-- <doc:12-NavigationChapter>
-- <doc:13-Charts>
+- <doc:12-ContextActions>
+- <doc:12-CustomDescription>
+- <doc:14-Carousel>
+
+### Навигация для VoiceOver
+- <doc:12-ScreenNavigation>
+- <doc:13-Rotor>
+- <doc:16-BetweenScreensNavigation>
+
+### Разное
 - <doc:14-Miscellaneous>
 - <doc:15-TextInput>
+- <doc:20-Charts>
 
 ### Voice Control
 
