@@ -1,8 +1,8 @@
-name = "a11y-book-new-router"
+name = "a11y-book-router"
 main = "router-worker.js"
 compatibility_date = "2024-01-01"
 
 routes = [
-  { pattern = "rubanov.dev/a11y-book-new", zone_name = "rubanov.dev" },
-  { pattern = "rubanov.dev/a11y-book-new/*", zone_name = "rubanov.dev" },
+  { pattern = "bookshelf.dev/a11y-book", zone_name = "bookshelf.dev" },
+  { pattern = "bookshelf.dev/a11y-book/*", zone_name = "bookshelf.dev" },
 ]

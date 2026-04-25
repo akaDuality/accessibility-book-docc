@@ -30,7 +30,7 @@ jobs:
 
       - name: Build
         run: |
-          swift package --allow-writing-to-directory ${{ env.DERIVED_DATA_PATH }} generate-documentation --target ${{ env.TARGET }} --disable-indexing --transform-for-static-hosting --hosting-base-path 'a11y-book-new' --output-path ${{ env.DERIVED_DATA_PATH }}
+          swift package --allow-writing-to-directory ${{ env.DERIVED_DATA_PATH }} generate-documentation --target ${{ env.TARGET }} --disable-indexing --transform-for-static-hosting --hosting-base-path 'a11y-book' --output-path ${{ env.DERIVED_DATA_PATH }}
 
       - name: Add redirect index.html
         run: |
@@ -38,10 +38,10 @@ jobs:
           <!DOCTYPE html>
           <html>
             <head>
-              <meta http-equiv="refresh" content="0; url=/a11y-book-new/documentation/accessibilitybook/">
+              <meta http-equiv="refresh" content="0; url=/a11y-book/documentation/accessibilitybook/">
             </head>
             <body>
-              <p>Redirecting to <a href="/a11y-book-new/documentation/accessibilitybook/">documentation</a>...</p>
+              <p>Redirecting to <a href="/a11y-book/documentation/accessibilitybook/">documentation</a>...</p>
             </body>
           </html>
           EOF
@@ -51,7 +51,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages project create a11y-book-new --production-branch main
+          command: pages project create a11y-book --production-branch main
         continue-on-error: true
 
       - name: Deploy to Cloudflare Pages
@@ -59,7 +59,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ${{ env.DERIVED_DATA_PATH }} --project-name=a11y-book-new
+          command: pages deploy ${{ env.DERIVED_DATA_PATH }} --project-name=a11y-book
 
       - name: Deploy router Worker
         uses: cloudflare/wrangler-action@v3
