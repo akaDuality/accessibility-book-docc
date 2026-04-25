@@ -1,6 +1,51 @@
 # Скролл
 Скролл редко приходится адаптировать самостоятельно, но интересно разобрать как он работает для доступности. 
 
+## Списки в таблице
+
+Когда `UITableView` скроллится жестом трёх пальцев, VoiceOver должен рассказать, что сейчас видно на экране. Для этого реализуйте `UIScrollViewAccessibilityDelegate`:
+
+```swift
+extension ViewController: UIScrollViewAccessibilityDelegate {
+
+    func accessibilityScrollStatus(
+        for scrollView: UIScrollView
+    ) -> String? {
+        let visibleRows = tableView.indexPathsForVisibleRows ?? []
+        guard let first = visibleRows.first,
+              let last = visibleRows.last else {
+            return nil
+        }
+        return "Показаны строки с \(first.row + 1) по \(last.row + 1) из \(items.count)"
+    }
+}
+```
+
+VoiceOver вызывает `accessibilityScrollStatus(for:)` после каждого скролла и озвучивает возвращённую строку. Это помогает пользователю понять, где он находится в списке.
+
+Для ручного управления скроллом реализуйте `accessibilityScroll(_:)`:
+
+```swift
+override func accessibilityScroll(
+    _ direction: UIAccessibilityScrollDirection
+) -> Bool {
+    switch direction {
+    case .down:
+        scrollToNextPage()
+        return true
+    case .up:
+        scrollToPreviousPage()
+        return true
+    default:
+        return false
+    }
+}
+```
+
+Верните `true`, если скролл выполнен, `false` — если нет.
+
+## Как работает скролл внутри
+
 > Warning: Это сложная глава для самых опытных, чтобы лучше понять как всё работает изнутри.
 
 UIScrollView — это интересный пример контейнера для доступных элементов:
