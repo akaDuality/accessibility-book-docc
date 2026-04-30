@@ -45,8 +45,10 @@
 
 ### Навигация для VoiceOver
 - <doc:12-ScreenNavigation>
+- <doc:13-BetweenScreensNavigation>
 - <doc:13-Rotor>
-- <doc:16-BetweenScreensNavigation>
+- <doc:14-Notifications>
+- <doc:15-Scroll>
 
 ### Разное
 - <doc:14-Miscellaneous>
