@@ -1,4 +1,4 @@
-# Accessibility Tree
+# Дерево доступности
 
 Как VoiceOver строит дерево доступности из иерархии UIView.
 

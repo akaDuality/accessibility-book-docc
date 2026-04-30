@@ -20,6 +20,7 @@
 - <doc:01-WhatIsAccessibility>
 - <doc:02-WhyAccessibility>
 - <doc:03-NoSeparateVersion>
+- <doc:04-Statistics>
 
 ### Как работает VoiceOver
 
