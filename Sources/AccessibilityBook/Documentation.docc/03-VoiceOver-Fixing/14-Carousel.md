@@ -216,3 +216,6 @@ class AccessibilityCarousel: UIAccessibilityElement {
 
 Трейт `.adjustable` позволяет менять значение вертикальными свайпами: свайп вверх вызывает `accessibilityIncrement()`, свайп вниз — `accessibilityDecrement()`. Пользователь одним свайпом переключает ячейку карусели, а `accessibilityValue` описывает текущую ячейку.
 
+@Comment {
+   в пицце был универсальный контрол для баннеров    
+}
