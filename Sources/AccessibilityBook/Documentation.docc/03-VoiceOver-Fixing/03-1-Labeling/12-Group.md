@@ -20,19 +20,52 @@
 
 Используем `accessibilityLabel` для названия и `accessibilityValue` для значения. VoiceOver прочитает их с разной интонацией, что естественно для пары "вопрос — ответ".
 
-```swift
-// Родительский контейнер (например, UIView или UIStackView)
-isAccessibilityElement = true
-accessibilityLabel = "Стоимость заказа"
-accessibilityValue = "799 ₽"
-```
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        // Родительский контейнер (например, UIView или UIStackView)
+        isAccessibilityElement = true
+        accessibilityLabel = "Стоимость заказа"
+        accessibilityValue = "799 ₽"
+        ```
+    }
+    @Tab("SwiftUI") {
+        ```swift
+        HStack {
+            Text("Стоимость заказа")
+            Spacer()
+            Text("799 ₽")
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Стоимость заказа")
+        .accessibilityValue("799 ₽")
+        ```
+    }
+}
 
 В реальном коде скорее будет так:
-```swift
-isAccessibilityElement = true
-accessibilityLabel = titleLabel.text
-accessibilityValue = valueLabel.text
-```
+
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        isAccessibilityElement = true
+        accessibilityLabel = titleLabel.text
+        accessibilityValue = valueLabel.text
+        ```
+    }
+    @Tab("SwiftUI") {
+        ```swift
+        HStack {
+            Text(title)
+            Spacer()
+            Text(value)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(title)
+        .accessibilityValue(value)
+        ```
+    }
+}
 
 Хороший пример — панель оценок в App Store. Средняя оценка, количество оценок и гистограмма объединены в один элемент: "Оценки и отзывы", значение "4.8 из 5". Не нужно свайпать по каждой звёздочке отдельно.
 
@@ -45,6 +78,60 @@ accessibilityValue = valueLabel.text
 Возраст, 12 плюс
 Рейтинг, 9 место в «Еда и напитки», кнопка
 ```
+
+## Режимы `accessibilityElement(children:)`
+
+В SwiftUI способ объединения дочерних элементов задаётся одним модификатором — `accessibilityElement(children:)`. У него три режима, и каждый решает свою задачу.
+
+### `.ignore` — задать подпись вручную
+
+Контейнер становится единым элементом доступности, дочерние вью исключаются. Подпись и значение задаются явно — VoiceOver не возьмёт ничего из детей.
+
+```swift
+HStack {
+    Text("Стоимость заказа")
+    Spacer()
+    Text("799 ₽")
+}
+.accessibilityElement(children: .ignore)
+.accessibilityLabel("Стоимость заказа")
+.accessibilityValue("799 ₽")
+```
+
+Используйте, когда нужно полностью контролировать, что прочитает VoiceOver: переписать сокращения, поменять порядок, добавить контекст. Эквивалент `isAccessibilityElement = true` в UIKit.
+
+### `.combine` — собрать дочерние подписи
+
+SwiftUI сам соберёт подписи всех дочерних элементов в одну строку и применит к контейнеру. Трейты и действия тоже наследуются.
+
+```swift
+HStack {
+    Text("Пепперони")
+    Text("625 ₽")
+}
+.accessibilityElement(children: .combine)
+// VoiceOver прочитает: «Пепперони, 625 ₽»
+```
+
+Используйте, когда видимый текст уже подходит для VoiceOver и переписывать его не нужно. Удобно для простых ячеек из нескольких коротких надписей.
+
+### `.contain` — логическая группа
+
+Дочерние элементы остаются отдельными — фокус по-прежнему попадает на каждый из них. Контейнер становится «контейнером» в смысле VoiceOver: помогает в навигации (ротор по контейнерам, свайп четырьмя пальцами).
+
+```swift
+VStack {
+    ForEach(pizzas) { pizza in
+        PizzaCard(pizza: pizza)
+    }
+}
+.accessibilityElement(children: .contain)
+.accessibilityLabel("Рекомендации")
+```
+
+Используйте для крупных смысловых разделов: секций экрана, каруселей, групп товаров. Объединять при этом дочерние элементы в один не нужно.
+
+> Tip: Если режим не указан, SwiftUI выбирает поведение сам: обычно дочерние элементы остаются доступными, как будто модификатора нет. Для группировки всегда указывайте режим явно.
 
 ## UISwitch в ячейке
 
@@ -75,63 +162,90 @@ let switchButtonTrait = UIAccessibilityTraits(rawValue: 53)
 
 Делаем ячейку доступным элементом и копируем данные из свитчера:
 
-```swift
-class SwitchCell: UITableViewCell {
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        class SwitchCell: UITableViewCell {
 
-    private var titleLabel: UILabel!
-    private var subtitleLabel: UILabel!
-    private var switcher: UISwitch!
+            private var titleLabel: UILabel!
+            private var subtitleLabel: UILabel!
+            private var switcher: UISwitch!
 
-    // Делаем всю ячейку доступной, указываем трейт как у свитчера.
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        
-        isAccessibilityElement = true
-        accessibilityTraits = switcher.accessibilityTraits
-    }
+            // Делаем всю ячейку доступной, указываем трейт как у свитчера.
+            override func awakeFromNib() {
+                super.awakeFromNib()
 
-    // Даем правильный label из двух строк.
-    func configure(title: String, subtitle: String) {
-        titleLabel?.text = title
-        subtitleLabel?.text = subtitle
-        
-        accessibilityLabel = [title, subtitle]
-            .joined(separator: ", ")
-    }
-    
-    // Значение должно считываться прямо из свитчера. Оно уже локализовано, но вы можете написать свой текст.
-    override var accessibilityValue: String? {
-        get {
-            switcher.accessibilityValue
+                isAccessibilityElement = true
+                accessibilityTraits = switcher.accessibilityTraits
+            }
+
+            // Даем правильный label из двух строк.
+            func configure(title: String, subtitle: String) {
+                titleLabel?.text = title
+                subtitleLabel?.text = subtitle
+
+                accessibilityLabel = [title, subtitle]
+                    .joined(separator: ", ")
+            }
+
+            // Значение должно считываться прямо из свитчера. Оно уже локализовано, но вы можете написать свой текст.
+            override var accessibilityValue: String? {
+                get {
+                    switcher.accessibilityValue
+                }
+                set {}
+            }
+
+            // Нажатие на ячейку должно активировать свитчер
+            override func accessibilityActivate() -> Bool {
+                switcher.accessibilityActivate()
+                return true
+            }
         }
-        set {}
+        ```
     }
-    
-    // Нажатие на ячейку должно активировать свитчер
-    override func accessibilityActivate() -> Bool {
-        switcher.accessibilityActivate()
-        return true
+    @Tab("SwiftUI") {
+        ```swift
+        // SwiftUI Toggle сам объединяет подпись, значение и трейт.
+        // Текст лейбла становится accessibilityLabel, состояние — accessibilityValue,
+        // тап в любом месте строки переключает свитчер.
+        Toggle(isOn: $isSubscribed) {
+            VStack(alignment: .leading) {
+                Text("Сообщать о бонусах")
+                Text("акциях и новых продуктах")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        ```
     }
 }
-```
-
-> Note: Можно иначе обработать нажатие на элемент перенеся `activationPoint` на свитчер. Про это дальше.
 
 ## Activation Point
 
 ![Пример переноса точки активации](simplify-activation-point)
 
-По умолчанию `accessibilityActivationPoint` указывает на центр элемента. При двойном тапе VoiceOver имитирует нажатие именно в эту точку. Обычно это работает, но иногда нужно перенаправить нажатие.
+По умолчанию `accessibilityActivationPoint` указывает на центр элемента. При двойном тапе VoiceOver имитирует нажатие именно в эту точку. Обычно это работает, но иногда нужно перенаправить нажатие. В примере выше можно подвинуть точку активации с центра ячейки на свитчер (или сделать всю ячейку кликабельной).
 
 Например, если ячейка содержит кнопку выбора не по центру, можно переместить точку активации:
 
-```swift
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        
-        accessibilityActivationPoint = selectButton.accessibilityActivationPoint
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            
+            accessibilityActivationPoint = selectButton.accessibilityActivationPoint
+        }
+        ```
     }
-```
+    @Tab("SwiftUI") {
+        ```swift
+        cellView
+            .accessibilityActivationPoint(.trailing)
+        ```
+    }
+}
 
 Если вы хотите сами рассчитывать координаты, то важно, чтобы точка активации рассчитывалась **в координатах экрана**. Для этого есть специальная функция `UIAccessibility.convertToScreenCoordinates`:
 
@@ -169,17 +283,33 @@ override func layoutSubviews() {
 
 Пересчёт размеров стоит писать в `layoutSubviews()`, чтобы он обновлялся при изменении размеров и положения вью. Например, мы хотим объединить зону кнопки добавления и подписи с ценой:
 
-```swift
-override func layoutSubviews() {
-    super.layoutSubviews()
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        override func layoutSubviews() {
+            super.layoutSubviews()
 
-    let combinedFrame = addToCartButton.frame.union(priceLabel.frame)
+            let combinedFrame = addToCartButton.frame.union(priceLabel.frame)
 
-    accessibilityFrame = UIAccessibility.convertToScreenCoordinates(
-        combinedFrame,
-        in: self
-    )
+            accessibilityFrame = UIAccessibility.convertToScreenCoordinates(
+                combinedFrame,
+                in: self
+            )
+        }
+        ```
+    }
+    @Tab("SwiftUI") {
+        ```swift
+        // В SwiftUI объединяем элементы через accessibilityElement(children: .combine).
+        // Зона нажатия растягивается на весь контейнер автоматически.
+        HStack {
+            Text(price)
+            Spacer()
+            Button("Добавить") { addToCart() }
+        }
+        .accessibilityElement(children: .combine)
+        ```
+    }
 }
-```
 
 > Tip: `accessibilityFrame` работает в **экранных координатах**, а не в координатах родительского вью. Метод `UIAccessibility.convertToScreenCoordinates(_:in:)` выполняет нужное преобразование.

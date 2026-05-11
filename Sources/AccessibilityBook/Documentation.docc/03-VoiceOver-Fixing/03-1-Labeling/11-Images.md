@@ -28,29 +28,70 @@
 
 Если изображение важно для понимания, сделайте его доступным и добавьте трейт `.image`. Например, на экране описания пиццы можно объединить картинку и заголовок, потому что по смыслу это одно и то же. 
 
-```swift
-imageView.isAccessibilityElement = true
-imageView.accessibilityTraits = [.image, .header]
-imageView.accessibilityLabel = "Пицца Пепперони"
-```
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        imageView.isAccessibilityElement = true
+        imageView.accessibilityTraits = [.image, .header]
+        imageView.accessibilityLabel = "Пицца Пепперони"
+        ```
+    }
+    @Tab("SwiftUI") {
+        ```swift
+        // Image по умолчанию имеет трейт .image
+        Image("pepperoni")
+            .accessibilityLabel("Пицца Пепперони")
+            .accessibilityAddTraits(.isHeader)
+        ```
+    }
+}
 
 iOS умеет распознавать содержимое изображений и может озвучить описание автоматически, но лучше не полагаться на это — задавайте подписи сами.
 
 Декоративные изображения скрывайте явно:
 
-```swift
-decorativeImage.isAccessibilityElement = false
-```
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        decorativeImage.isAccessibilityElement = false
+        ```
+    }
+    @Tab("SwiftUI") {
+        ```swift
+        Image("decoration")
+            .accessibilityHidden(true)
+
+        // Или используйте Image(decorative:) — он сразу без accessibility
+        Image(decorative: "decoration")
+        ```
+    }
+}
 
 Бейджи и пометки на картинках — особый случай. Если на карточке пиццы есть бейдж «NEW», не делайте его отдельным доступным элементом. Лучше добавьте информацию в подпись основного элемента:
 
-```swift
-// Плохо: бейдж как отдельный элемент
-badgeLabel.isAccessibilityElement = true
-badgeLabel.accessibilityLabel = "NEW"
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        // Плохо: бейдж как отдельный элемент
+        badgeLabel.isAccessibilityElement = true
+        badgeLabel.accessibilityLabel = "NEW"
 
-// Хорошо: информация в подписи карточки
-cell.accessibilityLabel = "Новинка, Пепперони, 625 рублей"
-```
+        // Хорошо: информация в подписи карточки
+        cell.accessibilityLabel = "Новинка, Пепперони, 625 рублей"
+        ```
+    }
+    @Tab("SwiftUI") {
+        ```swift
+        // Плохо: бейдж читается отдельно
+        PizzaCard(pizza: pepperoni)
+            // Text("NEW") внутри озвучивается VoiceOver
+
+        // Хорошо: бейдж скрыт, информация в подписи карточки
+        PizzaCard(pizza: pepperoni)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Новинка, Пепперони, 625 рублей")
+        ```
+    }
+}
 
 Так пользователь сразу услышит всю информацию о пицце, а не будет переключаться между элементами.

@@ -18,26 +18,61 @@
 
 Для простой ячейки делаем всю ячейку доступным элементом, даём ей описание и добавляем свойство `.button`, чтобы пользователь понял, что на неё можно нажать.
 
-```swift
-class LocaleCell: UITableViewCell {
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        class LocaleCell: UITableViewCell {
 
-    @IBOutlet private weak var nameLabel: UILabel!
+            @IBOutlet private weak var nameLabel: UILabel!
 
-    override func awakeFromNib() {
-        super.awakeFromNib()
+            override func awakeFromNib() {
+                super.awakeFromNib()
 
-        isAccessibilityElement = true
-        accessibilityTraits = .button
-    }
+                isAccessibilityElement = true
+                accessibilityTraits = .button
+            }
 
-    var title: String? {
-        didSet {
-            nameLabel.text = title
-            accessibilityLabel = title
+            var title: String? {
+                didSet {
+                    nameLabel.text = title
+                    accessibilityLabel = title
+                }
+            }
         }
+        ```
+    }
+    @Tab("SwiftUI") {
+        ```swift
+        // В List ячейка с действием уже становится одним элементом с трейтом «кнопка»
+        List(locales) { locale in
+            Button {
+                select(locale)
+            } label: {
+                Text(locale.title)
+            }
+        }
+
+        // Вне List (например, в ScrollView + VStack) объединяем вручную:
+        // accessibilityElement(children: .combine) делает строку одним элементом,
+        // accessibilityAddTraits(.isButton) добавляет трейт «кнопка».
+        ScrollView {
+            VStack {
+                ForEach(locales) { locale in
+                    HStack {
+                        Text(locale.title)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture { select(locale) }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.isButton)
+                }
+            }
+        }
+        ```
     }
 }
-```
 
 Когда `isAccessibilityElement = true` стоит на ячейке, VoiceOver перестаёт искать доступные элементы внутри неё — все дочерние вью становятся невидимыми. Ячейка сама становится единым фокусом.
 
@@ -57,29 +92,49 @@ value: С 9 до 23
 traits: кнопка
 ```
 
-```swift
-class PizzeriasTableViewCell: UITableViewCell {
-    @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var scheduleLabel: UILabel!
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        isAccessibilityElement = true
-        accessibilityTraits = .button
-    }
-    var title: String? {
-        didSet {
-            titleLabel.text = title
-            accessibilityLabel = title
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        class PizzeriasTableViewCell: UITableViewCell {
+            @IBOutlet weak var titleLabel: UILabel!
+            @IBOutlet weak var scheduleLabel: UILabel!
+            override func awakeFromNib() {
+                super.awakeFromNib()
+                isAccessibilityElement = true
+                accessibilityTraits = .button
+            }
+            var title: String? {
+                didSet {
+                    titleLabel.text = title
+                    accessibilityLabel = title
+                }
+            }
+            var schedule: String? {
+                didSet {
+                    scheduleLabel.text = schedule
+                    accessibilityValue = schedule
+                }
+            }
         }
+        ```
     }
-    var schedule: String? {
-        didSet {
-            scheduleLabel.text = schedule
-            accessibilityValue = schedule
+    @Tab("SwiftUI") {
+        ```swift
+        Button {
+            select(pizzeria)
+        } label: {
+            VStack(alignment: .leading) {
+                Text(pizzeria.title)
+                Text(pizzeria.schedule)
+                    .foregroundStyle(.secondary)
+            }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(pizzeria.title)
+        .accessibilityValue(pizzeria.schedule)
+        ```
     }
 }
-```
 
 > Tip: Разделение на `label` и `value` создаёт паузу и разную интонацию в речи VoiceOver: название читается уверенно, а значение — чуть тише и после паузы. Это помогает пользователю структурировать информацию на слух.
 
@@ -93,17 +148,27 @@ class PizzeriasTableViewCell: UITableViewCell {
 Элемент можно отметить одновременно и типом (кнопка), и состоянием (выбрано),
 поэтому трейты надо указывать через функции работы с OptionSet.
 
-```swift
-override public var isSelected: Bool {
-    didSet {
-        if isSelected {
-            accessibilityTraits.insert(.selected)
-        } else {
-            accessibilityTraits.subtract(.selected)
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        override public var isSelected: Bool {
+            didSet {
+                if isSelected {
+                    accessibilityTraits.insert(.selected)
+                } else {
+                    accessibilityTraits.subtract(.selected)
+                }
+            }
         }
+        ```
+    }
+    @Tab("SwiftUI") {
+        ```swift
+        pizzeriaRow
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+        ```
     }
 }
-```
 
 Интересно, что даже в таком формате VoiceOver читает время как «с девять до двадцать три». Слова не склоняет, но и лишние ноли не читает.
 
@@ -120,9 +185,20 @@ traits: недоступно, кнопка
 Если вам нужно показать, что ячейку сейчас выбрать нельзя, то используйте
 стандартный трейт .notEnabled, он добавит к описанию «недоступно».
 
-```swift
-accessibilityTraits.insert(.notEnabled)
-```
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        accessibilityTraits.insert(.notEnabled)
+        ```
+    }
+    @Tab("SwiftUI") {
+        ```swift
+        // .disabled и блокирует взаимодействие, и добавляет трейт «недоступно»
+        pizzeriaRow
+            .disabled(isClosed)
+        ```
+    }
+}
 
 Использовать трейт `.notEnabled` нужно только для тех элементов, с которыми нельзя взаимодействовать. Если я могу выбрать адрес, то трейт `.notEnabled` указывать не нужно, и о закрытой пиццерии надо рассказать через value.
 
@@ -187,20 +263,41 @@ trait: кнопка
 
 Код для доступности достаточно прост: делаем ячейку доступной, даем ей описание и поведение кнопки, а затем лишь собираем две строчки с описанием.
 
-```swift
-override func awakeFromNib() {
-    super.awakeFromNib()
-    isAccessibilityElement = true
-    accessibilityTraits = .button
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        override func awakeFromNib() {
+            super.awakeFromNib()
+            isAccessibilityElement = true
+            accessibilityTraits = .button
+        }
+
+        func updateAccessibility(title: String,
+                                 price: String,
+                                 ingredients: String?) {
+            accessibilityLabel = [title, price].joined(separator: ", ")
+            accessibilityValue = ingredients
+        }
+        ```
+    }
+    @Tab("SwiftUI") {
+        ```swift
+        Button {
+            select(pizza)
+        } label: {
+            VStack(alignment: .leading) {
+                Text(pizza.title)
+                Text(pizza.price)
+                Text(pizza.ingredients ?? "")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(pizza.title), \(pizza.price)")
+        .accessibilityValue(pizza.ingredients ?? "")
+        ```
+    }
 }
-    
-func updateAccessibility(title: String,
-                         price: String,
-                         ingredients: String?) {
-    accessibilityLabel = [title, price].joined(separator: ", ")
-    accessibilityValue = ingredients
-}
-```
     
 Если продукт недоступен, то кнопка с ценой заменится на надпись «будет позже». Для VoiceOver графическая смена контролов неважна, поэтому просто меняем текст цены:
 ```
@@ -212,40 +309,69 @@ trait: кнопка
 
 С учетом этого, код становится лишь чуть сложнее:
 
-```swift
-func updateAccessibility(
-    title: String,
-    price: String,
-    ingredients: String?,
-    isProductAvailable: Bool
-) {
-    let price = isProductAvailable ? price : "Будет позже"
-    accessibilityLabel = [title, price].joined(separator: ", ") 
-    accessibilityValue = ingredients
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        func updateAccessibility(
+            title: String,
+            price: String,
+            ingredients: String?,
+            isProductAvailable: Bool
+        ) {
+            let price = isProductAvailable ? price : "Будет позже"
+            accessibilityLabel = [title, price].joined(separator: ", ")
+            accessibilityValue = ingredients
+        }
+        ```
+    }
+    @Tab("SwiftUI") {
+        ```swift
+        let displayPrice = pizza.isAvailable ? pizza.price : "Будет позже"
+
+        pizzaRow
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(pizza.title), \(displayPrice)")
+            .accessibilityValue(pizza.ingredients ?? "")
+        ```
+    }
 }
-```
 
 Можно добавить трейт отключенности элемента, но только если на ячейку нельзя нажать. 
 
-```swift
-func updateAccessibility(
-    title: String,
-    price: String,
-    ingredients: String,
-    isProductAvailable: Bool
-) {
-    isAccessibilityElement = true
+@TabNavigator {
+    @Tab("UIKit") {
+        ```swift
+        func updateAccessibility(
+            title: String,
+            price: String,
+            ingredients: String,
+            isProductAvailable: Bool
+        ) {
+            isAccessibilityElement = true
 
-    let price = isProductAvailable ? price : "Будет позже"
-    accessibilityLabel = [title, price].joined(separator: ", ") 
-    accessibilityValue = ingredients
+            let price = isProductAvailable ? price : "Будет позже"
+            accessibilityLabel = [title, price].joined(separator: ", ") 
+            accessibilityValue = ingredients
 
-    if isProductAvailable {
-        accessibilityTraits = .button
-    } else {
-        accessibilityTraits = [.button, .notEnabled]
+            if isProductAvailable {
+                accessibilityTraits = .button
+            } else {
+                accessibilityTraits = [.button, .notEnabled]
+            }
+        }
+        ```
+    }
+    @Tab("SwiftUI") {
+        ```swift
+        let displayPrice = pizza.isAvailable ? pizza.price : "Будет позже"
+
+        pizzaRow
+            .disabled(!pizza.isAvailable)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(pizza.title), \(displayPrice)")
+            .accessibilityValue(pizza.ingredients)
+        ```
     }
 }
-```
 
 Еще более сложный пример мы разберем в главе <doc:12-CustomDescription>

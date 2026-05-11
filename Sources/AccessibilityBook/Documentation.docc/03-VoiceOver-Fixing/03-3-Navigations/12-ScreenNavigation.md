@@ -68,6 +68,30 @@ func accessibilityElement(at index: Int) -> Any?
 func index(ofAccessibilityElement element: Any) -> Int 
 ```
 
+## Скрытие поддерева
+
+Иногда целый блок элементов не должен участвовать в навигации: модальное окно перекрывает основной контент, лоадер блокирует экран, или часть интерфейса временно неактивна. Свойство `accessibilityElementsHidden = true` исключает всё поддерево вью из дерева доступности — VoiceOver его не видит.
+
+```swift
+loadingOverlay.accessibilityElementsHidden = true
+```
+
+Главный сценарий — модальные окна и оверлеи. Когда показываете попап поверх экрана, фоновый контент должен быть недоступен, иначе VoiceOver продолжит фокусироваться на элементах под модалкой:
+
+```swift
+func presentModal() {
+    backgroundView.accessibilityElementsHidden = true
+    view.addSubview(modalView)
+}
+
+func dismissModal() {
+    modalView.removeFromSuperview()
+    backgroundView.accessibilityElementsHidden = false
+}
+```
+
+> Note: `accessibilityElementsHidden` отличается от `isAccessibilityElement = false`: первое скрывает всё поддерево, второе — только сам элемент, а его дочерние всё ещё доступны.
+
 ## Заголовки
 
 ![](Headers)
