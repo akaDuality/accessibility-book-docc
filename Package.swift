@@ -10,6 +10,9 @@ let package = Package(
         .library(
             name: "AccessibilityBook",
             targets: ["AccessibilityBook"]),
+        .library(
+            name: "AccessibilityBookEN",
+            targets: ["AccessibilityBookEN"]),
     ],
     dependencies: [
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.4"),
@@ -17,5 +20,7 @@ let package = Package(
     targets: [
         .target(
             name: "AccessibilityBook"),
+        .target(
+            name: "AccessibilityBookEN"),
     ]
 )

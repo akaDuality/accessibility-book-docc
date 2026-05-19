@@ -14,7 +14,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  TARGET: "AccessibilityBook"
   DERIVED_DATA_PATH: './docs'
 
 jobs:
@@ -28,9 +27,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build
+      - name: Build Russian docs
         run: |
-          swift package --allow-writing-to-directory ${{ env.DERIVED_DATA_PATH }} generate-documentation --target ${{ env.TARGET }} --disable-indexing --transform-for-static-hosting --hosting-base-path 'a11y-book' --output-path ${{ env.DERIVED_DATA_PATH }}
+          swift package --allow-writing-to-directory ${{ env.DERIVED_DATA_PATH }} generate-documentation --target AccessibilityBook --disable-indexing --transform-for-static-hosting --hosting-base-path 'a11y-book' --output-path ${{ env.DERIVED_DATA_PATH }}
+
+      - name: Build English docs
+        run: |
+          swift package --allow-writing-to-directory ${{ env.DERIVED_DATA_PATH }}/en generate-documentation --target AccessibilityBookEN --disable-indexing --transform-for-static-hosting --hosting-base-path 'a11y-book/en' --output-path ${{ env.DERIVED_DATA_PATH }}/en
 
       - name: Add redirect index.html
         run: |
@@ -42,6 +45,18 @@ jobs:
             </head>
             <body>
               <p>Redirecting to <a href="/a11y-book/documentation/accessibilitybook/">documentation</a>...</p>
+            </body>
+          </html>
+          EOF
+
+          cat > ${{ env.DERIVED_DATA_PATH }}/en/index.html <<EOF
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta http-equiv="refresh" content="0; url=/a11y-book/en/documentation/accessibilitybooken/">
+            </head>
+            <body>
+              <p>Redirecting to <a href="/a11y-book/en/documentation/accessibilitybooken/">documentation</a>...</p>
             </body>
           </html>
           EOF
